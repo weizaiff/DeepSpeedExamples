@@ -1,0 +1,21 @@
+{
+    "name": "8.130.47.78",
+    "host": "8.130.47.78",
+    "protocol": "sftp",
+    "port": 986,
+    "username": "leyf",
+    "password": "leyf@2024%TecoALYcHuj",
+    "remotePath": "/mnt/application/leyf/ds_chat/code",
+    "uploadOnSave": true,
+    "context":"/Users/van/file/1大模型/deepspeed&deepspeedchat/DeepSpeedExamples",
+    "ignore": [
+        ".vscode",
+        ".git",
+        ".DS_Store"
+    ],
+    "watcher": {
+        "files": "**/*",
+        "autoUpload": true,
+        "autoDelete": false
+    }      
+}
