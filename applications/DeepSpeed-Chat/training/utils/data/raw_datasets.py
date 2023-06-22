@@ -11,11 +11,12 @@ import re
 # follow in order to have a unified API and unified data format.
 class PromptRawDataset(object):
 
-    def __init__(self, output_path, seed, local_rank, dataset_name):
+    def __init__(self, output_path, seed, local_rank, dataset_name, init_load=True):
         self.output_path = output_path
         self.seed = seed
         self.local_rank = local_rank
-        if not dataset_name == 'local/jsonfile':
+        print("dataset_name:", dataset_name)
+        if not dataset_name == 'local/jsonfile' and init_load:
             self.raw_datasets = load_dataset(dataset_name)
 
     def get_train_data(self):
@@ -342,7 +343,68 @@ class PvduySharegptalpacaoavicunaformatDataset(PromptRawDataset):
         )
         return None
 
+class CUSTOM_LocalJsonFileDataset(PromptRawDataset):
 
+    def __init__(self, output_path, seed, local_rank, dataset_name, chat_path):
+        super().__init__(output_path, seed, local_rank, dataset_name, init_load=False)
+        self.dataset_name = dataset_name
+        self.dataset_name_clean = "jsonfile"
+        print("self.dataset_name:", self.dataset_name)
+        if False:
+            self.raw_datasets = load_dataset('json',
+                                            data_files={
+                                                "train":
+                                                self.dataset_name + '/train.json',
+                                                "eval":
+                                                self.dataset_name + '/eval.json'
+                                            }, download_mode= "force_redownload")
+        self.raw_datasets = load_dataset('csv',
+                                         data_files={
+                                             "train":
+                                             self.dataset_name + '/train.csv',
+                                             "eval":
+                                             self.dataset_name + '/eval.csv'
+                                         }, download_mode= "force_redownload")
+        print("self.raw_datasets:", self.raw_datasets)
+
+    def get_train_data(self):
+        if self.raw_datasets['train'] is not None:
+            return self.raw_datasets['train']
+        return None
+
+    def get_eval_data(self):
+        if self.raw_datasets['eval'] is not None:
+            return self.raw_datasets['eval']
+        return None
+
+    # The prompt should be in the format of: " Human: " + actual_prompt_sentence + " Assistant:"
+    def get_prompt(self, sample):
+        if sample['prompt'] is not None:
+            return " " + sample['prompt']
+        return None
+
+    # The chosen response should be in the format of: " " + actual_response_sentence
+    def get_chosen(self, sample):
+        if sample['chosen'] is not None:
+            return " " + sample['chosen']
+        return None
+
+    # The rejected response should be in the format of: " " + actual_response_sentence
+    # If the dataset does not have rejected response, return None
+    def get_rejected(self, sample):
+        if sample['rejected'] is not None:
+            return " " + sample['rejected']
+        return None
+
+    def get_prompt_and_chosen(self, sample):
+        if sample['prompt'] is not None and sample['chosen'] is not None:
+            return " " + sample['prompt'] + " " + sample['chosen']
+        return None
+
+    def get_prompt_and_rejected(self, sample):
+        if sample['prompt'] is not None and sample['rejected'] is not None:
+            return " " + sample['prompt'] + " " + sample['rejected']
+        return None
 class LocalJsonFileDataset(PromptRawDataset):
 
     def __init__(self, output_path, seed, local_rank, dataset_name, chat_path):

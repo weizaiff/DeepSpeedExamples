@@ -75,6 +75,21 @@ def get_raw_dataset(dataset_name, output_path, seed, local_rank):
             )
         return raw_datasets.LocalJsonFileDataset(output_path, seed, local_rank,
                                                  dataset_name, chat_path)
+    elif len(dataset_name)>0:
+        if False:
+            chat_path = os.path.abspath(
+                os.path.join(os.path.dirname(__file__), os.path.pardir,
+                            os.path.pardir, os.path.pardir))
+            print('caht_path:', chat_path)
+            if not (os.path.isfile(chat_path + '/train.json')
+                    and os.path.isfile(chat_path + '/eval.json')):
+                raise RuntimeError(
+                    f"Please check both the train.json and eval.json files in your applications/DeepSpeed-Chat/data directory."
+                )
+        return raw_datasets.CUSTOM_LocalJsonFileDataset(output_path, seed, local_rank,
+                                                 dataset_name, "")
+        
+
     else:
         raise RuntimeError(
             f"We do not have configs for dataset {dataset_name}, but you can add it by yourself in raw_datasets.py."

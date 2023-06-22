@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # DeepSpeed Team
+from tqdm import tqdm
 import argparse
 import os
 import math
@@ -220,8 +221,10 @@ def main():
     train_dataset, eval_dataset = create_prompt_dataset(
         args.local_rank, args.data_path, args.data_split,
         args.data_output_path, train_phase, args.seed, tokenizer,
-        args.max_seq_len)
-
+        args.max_seq_len, reload=True)
+    
+    #print('train_dataset:', train_dataset.len(), train_dataset)
+    #print('eval_dataset:', eval_dataset.len(),eval_dataset)
     # DataLoaders creation:
     data_collator = DataCollatorReward()
     if args.local_rank == -1:
@@ -245,7 +248,7 @@ def main():
         correct_predictions = 0
         total_predictions = 0
         scores = 0
-        for step, batch in enumerate(eval_dataloader):
+        for step, batch in tqdm(enumerate(eval_dataloader)):
             batch = to_device(batch, device)
             with torch.no_grad():
                 outputs = model(**batch)
@@ -307,13 +310,13 @@ def main():
         f"chosen_last_scores (higher is better) : {reward_score}, acc (higher is better) : {acc}",
         args.global_rank)
 
-    for epoch in range(args.num_train_epochs):
+    for epoch in tqdm(range(args.num_train_epochs)):
         print_rank_0(
             f"Beginning of Epoch {epoch+1}/{args.num_train_epochs}, Total Micro Batches {len(train_dataloader)}",
             args.global_rank)
         rm_model.train()
         mean_loss = 0
-        for step, batch in enumerate(train_dataloader):
+        for step, batch in tqdm(enumerate(train_dataloader)):
             batch = to_device(batch, device)
             outputs = rm_model(**batch, use_cache=False)
             loss = outputs["loss"]
