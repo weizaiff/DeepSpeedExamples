@@ -47,7 +47,7 @@ def convert_line(aline):
 def main(is_beta, input_data_path, output_data_path):
     data_path = input_data_path
     
-    data_list = load_jsonl(data_path)
+    data_list = load_jsonl(data_path)[:100000]
     if is_beta:
         data_list = data_list[:10000]
     print(data_list[0])
@@ -74,36 +74,43 @@ def main(is_beta, input_data_path, output_data_path):
         with open(output_data_path, 'w') as f:
             print('write...')
             f.write(json_str)
-    with open(output_data_path, 'w') as outfile:
-        for entry in final_feature_list:
-            json.dump(entry, outfile)
-            outfile.write('\n')
+    #with open(output_data_path, 'w') as outfile:
+    #    for entry in final_feature_list:
+    #        json.dump(entry, outfile)
+    #        outfile.write('\n')
     prompt=[]
     chosen=[]
     rejected=[]
     for entry in final_feature_list:
-        prompt.append(entry['prompt'])
+        p_ = entry['prompt']
+        #生成MOSS数据格式的RW数据
+        p_=f'''我是人工智能助手Happy! 能够帮助大家解决通识问题，我的目标是方便人类的生活，不创造或者生成任何有悖法律的回答，敬请提问！[Human]: {p_}<eoh> <|Inner Thoughts|>: None<eot>
+<|Commands|>: None<eoc>
+<|Results|>: None<eor>
+[MOSS]:
+        '''
+        prompt.append(p_)
         chosen.append(entry['chosen'])
         rejected.append(entry['rejected'])
-    df=pd.DataFrame({'prompt':prompt, 'chosen':chosen,'rejected':rejected})
-    df.to_csv(output_data_path.split('.json')[0]+'.csv', index=False)
+    dev_num =-100000
+    df_train=pd.DataFrame({'prompt':prompt[:dev_num], 'chosen':chosen[:dev_num],'rejected':rejected[:dev_num]})
+    df_train.to_csv(output_data_path+'train.csv', index=False)
 
-
-
-
+    df_train=pd.DataFrame({'prompt':prompt[dev_num:], 'chosen':chosen[dev_num:],'rejected':rejected[dev_num:]})
+    df_train.to_csv(output_data_path+'eval.csv', index=False)
 
 
 if __name__=='__main__':
-    is_beta = True
+    is_beta = False
     #input_data_path = '/mnt/application/leyf/ds_chat/data/chinese_chatgpt_corpus/train_data_external_v1.jsonl'
     #output_data_path = '/mnt/application/leyf/ds_chat/data/chinese_chatgpt_corpus/train.json'
-    input_data_path = '/mnt/application/leyf/ds_chat/data/chinese_chatgpt_corpus/dev_data_external_v1.jsonl'
-    output_data_path = '/mnt/application/leyf/ds_chat/data/chinese_chatgpt_corpus/eval.json'
+    #input_data_path = '/mnt/application/leyf/ds_chat/data/chinese_chatgpt_corpus/dev_data_external_v1.jsonl'
+    #output_data_path = '/mnt/application/leyf/ds_chat/data/chinese_chatgpt_corpus/eval.json'
 
-    main(is_beta, input_data_path, output_data_path)
+    #main(is_beta, input_data_path, output_data_path)
 
     input_data_path = '/mnt/application/leyf/ds_chat/data/chinese_chatgpt_corpus/train_data_external_v1.jsonl'
-    output_data_path = '/mnt/application/leyf/ds_chat/data/chinese_chatgpt_corpus/train.json'
+    output_data_path = '/mnt/application/leyf/ds_chat/data/chinese_chatgpt_corpus/'
 
     main(is_beta, input_data_path, output_data_path)
 

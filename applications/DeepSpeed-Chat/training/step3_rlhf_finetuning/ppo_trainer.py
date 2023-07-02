@@ -189,20 +189,38 @@ class DeepSpeedPPOTrainer():
         pg_loss1 = -advantages * ratio
         pg_loss2 = -advantages * torch.clamp(ratio, 1.0 - self.cliprange,
                                              1.0 + self.cliprange)
-        pg_loss = torch.sum(torch.max(pg_loss1, pg_loss2) * mask) / mask.sum()
+        pg_loss1 = torch.clamp(pg_loss1,-1000,1000)
+        pg_loss2 = torch.clamp(pg_loss2,-1000,1000)
+        #pg_loss = torch.sum(torch.max(pg_loss1, pg_loss2) * mask) / mask.sum() --org
+        pg_loss =  0.005*torch.sum(torch.max(pg_loss1, pg_loss2)  * (mask/ mask.sum() ))
         return pg_loss
 
     def critic_loss_fn(self, values, old_values, returns, mask):
         ## value loss
+
         values_clipped = torch.clamp(
             values,
             old_values - self.cliprange_value,
             old_values + self.cliprange_value,
         )
-        vf_loss1 = (values - returns)**2
-        vf_loss2 = (values_clipped - returns)**2
-        vf_loss = 0.5 * torch.sum(
-            torch.max(vf_loss1, vf_loss2) * mask) / mask.sum()
+        #print("values, returns:", values, returns)
+        vf_loss1 = torch.clamp((values - returns),-1000,1000)
+        vf_loss2 = torch.clamp((values_clipped - returns),-1000,1000)
+        print(torch.max(vf_loss1), torch.max(vf_loss2))
+        if False:
+            '''
+            尝试失败的的参数：
+            vf_loss1 = (values - returns)**1.8
+            vf_loss2 = (values_clipped - returns)**1.8
+            '''
+            pass
+        #vf_loss = 0.5 * torch.sum(
+        #    torch.max(vf_loss1, vf_loss2) * mask/ mask.sum()) 
+        
+        vf_loss =  0.05* torch.mean(
+            torch.max(vf_loss1, vf_loss2) * (mask/ mask.sum()) )
+        #print("mask.sum(), torch.max，vf_loss1 ，vf_loss1", mask.sum(), torch.max(mask), torch.max(vf_loss1),torch.max(vf_loss2))
+        #print("vf_lossvf_loss1, vf_loss2:", vf_loss, vf_loss1, vf_loss2)
         return vf_loss
 
     def get_advantages_and_returns(self, values, rewards, start):
