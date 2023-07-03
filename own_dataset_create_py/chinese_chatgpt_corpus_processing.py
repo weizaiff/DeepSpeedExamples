@@ -47,7 +47,7 @@ def convert_line(aline):
 def main(is_beta, input_data_path, output_data_path):
     data_path = input_data_path
     
-    data_list = load_jsonl(data_path)[:100000]
+    data_list = load_jsonl(data_path)[:1000000]
     if is_beta:
         data_list = data_list[:10000]
     print(data_list[0])
