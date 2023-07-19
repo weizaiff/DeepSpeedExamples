@@ -382,6 +382,17 @@ def main():
     tokenizer.pad_token = tokenizer.eos_token
     # make sure tokenizer is right pad in our logic
     tokenizer.padding_side = 'right'
+
+    # add special token for moss data
+    special_tokens_dict = {'additional_special_tokens': ['<eoc>','<eoh>','<eom>','<eor>','<eot>']}
+    tokenizer.add_special_tokens(special_tokens_dict)
+
+    print("tokenizer(' <eom> ')", tokenizer(' <eom> ') )
+    print("tokenizer('再见！祝您有一个美好的一天！<eom> [Human]: ')", tokenizer('再见！祝您有一个美好的一天！<eom> [Human]: ') )
+
+    text ="自创了一句箴言：“千里之行，始于足下”，用以提醒自己，永不放弃。<eom> [Human]: 请提供编程"
+    print("tokenizer('<eom>'):", tokenizer(text) )
+    
     prompt_train_dataloader, unsupervised_train_dataloader, num_total_iters = create_datasets(
         args=args, tokenizer=tokenizer, train_phase=3)
 

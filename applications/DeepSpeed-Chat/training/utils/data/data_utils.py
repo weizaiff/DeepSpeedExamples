@@ -234,7 +234,7 @@ def create_dataset_split(current_dataset, raw_dataset, train_phase, tokenizer,
                                                               (max_seq_len -
                                                                1):].flip(0)
                     else:
-                        y = prompt_token[key_word].squeeze(0).flip(0)
+                        y = prompt_token[key_word].squeeze(0).flip(0) #为什么要flip？？？？
                     prompt_token[key_word] = y
                 prompt_dataset.append(prompt_token)
     return PromptDataset(prompt_dataset, chosen_dataset, reject_dataset,

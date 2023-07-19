@@ -58,6 +58,8 @@ def load_hf_tokenizer(model_name_or_path, fast_tokenizer=True):
     else:
         tokenizer = AutoTokenizer.from_pretrained(model_name_or_path,
                                                   fast_tokenizer=True)
+    
+    
     return tokenizer
 
 

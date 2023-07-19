@@ -34,14 +34,21 @@ def create_hf_model(model_class,
         # the weight loading is handled by create critic model
         model = model_class.from_config(model_config)
     else:
-        model = model_class.from_pretrained(
-            model_name_or_path,
-            from_tf=bool(".ckpt" in model_name_or_path),
-            config=model_config, ignore_mismatched_sizes=True)
+        try:
+            model = model_class.from_pretrained(
+                model_name_or_path,
+                from_tf=bool(".ckpt" in model_name_or_path),
+                config=model_config)
+        except:
+            model_config.vocab_size = 250685 # for bloom resize tokenizer
+            model = model_class.from_pretrained(
+                model_name_or_path,
+                from_tf=bool(".ckpt" in model_name_or_path),
+                config=model_config)
     
     # add special token 
-    special_tokens_dict = {'additional_special_tokens': ['<eoc>','<eoh>','<eom>','<eor>','<eot>']}
-    tokenizer.add_special_tokens(special_tokens_dict)
+    #special_tokens_dict = {'additional_special_tokens': ['<eoc>','<eoh>','<eom>','<eor>','<eot>']}
+    #tokenizer.add_special_tokens(special_tokens_dict)
     model.resize_token_embeddings(len(tokenizer))
 
     model.config.end_token_id = tokenizer.eos_token_id

@@ -66,8 +66,26 @@ class DeepSpeedPPOTrainer():
         self.lam = 0.95
 
     def _generate_sequence(self, prompts, mask):
-
+        # mask--》padding后的
         max_min_length = self.max_answer_seq_len + prompts.shape[1]
+
+        meta_instruction = "我是人工智能助手Happy! 能够帮助大家解决通识问题，我的目标是方便人类的生活，不创造或者生成任何有悖法律的回答，敬请提问！"
+        prompt = meta_instruction+ f"[Human]: 你是<eoh>\n<|Inner Thoughts|>: None<eot>\n<|Commands|>: None<eoc>\n<|Results|>: None<eor>\n[MOSS]: "
+        
+
+        # for do_beta:
+        if False:
+            #torch.cuda.set_device(self.args.local_rank)
+            device = torch.device("cuda", self.args.local_rank)
+            inputs = self.tokenizer(prompt, return_tensors="pt")
+            # test
+            with torch.no_grad():
+                seq_spe = self.actor_model.module.generate(inputs.input_ids.to(device), 
+                                                        attention_mask=inputs.attention_mask.to(device),
+                                                    max_length=max_min_length,
+                                                    min_length=max_min_length)
+
+            print('seq_spe:', self.tokenizer.decode(seq_spe[0], skip_special_tokens=False))
 
         with torch.no_grad():
             seq = self.actor_model.module.generate(prompts,
@@ -90,6 +108,20 @@ class DeepSpeedPPOTrainer():
             else:
                 out_seq.append(seq[i:i + 1])
         out_seq = torch.cat(out_seq, dim=0)  # concate output in the batch dim
+        
+        print('prompts:', prompts)
+        print('mask:', mask)
+        text ="自创了一句箴言：“千里之行，始于足下”，用以提醒自己，永不放弃。<eom> [Human]: 请提供编程"
+        print("tokenizer('<eom>'):", self.tokenizer(text) )
+        print('actor model generate:', '\n******prompt-decode:',self.tokenizer.decode(prompts[0], skip_special_tokens=False),'\n*****seq-decode:', self.tokenizer.decode(seq[0], skip_special_tokens=False))
+        # 只使用MOSS回复，token<eom>(包括)后面的部分截断
+        
+        for i in range(batch_size):
+            back_index = (seq[i, prompt_length:]==(self.tokenizer(self.args.end_of_conversation_token)['input_ids'][0])).nonzero()
+            if len(back_index)>0:
+                seq[i,prompt_length+back_index[0][0]:] = self.tokenizer.pad_token_id
+
+        print('actor model generate--after truncating:','\n*****seq-decode:', self.tokenizer.decode(seq[0], skip_special_tokens=False))
 
         return out_seq
 
