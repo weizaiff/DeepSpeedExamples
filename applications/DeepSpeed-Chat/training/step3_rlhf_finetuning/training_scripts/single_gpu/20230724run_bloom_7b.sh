@@ -15,7 +15,7 @@ if [ "$CRITIC_MODEL_PATH" == "" ]; then
     CRITIC_MODEL_PATH=/data/application/leyf/ds_chat/20230703_step2_output
 fi
 if [ "$OUTPUT" == "" ]; then
-    OUTPUT=/mnt/application/leyf/ds_chat/rlhf_output/20230719__3_add_specialtoken_bloom7b1_from_sft
+    OUTPUT=/mnt/application/leyf/ds_chat/rlhf_output/20230724__1ppepoch_add_specialtoken_bloom7b1_from_sft
 fi
 if [ "$ACTOR_ZERO_STAGE" == "" ]; then
     ACTOR_ZERO_STAGE=2
