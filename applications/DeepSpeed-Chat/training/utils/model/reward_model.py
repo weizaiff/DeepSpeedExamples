@@ -52,7 +52,7 @@ class RewardModel(nn.Module):
             inputs_embeds=inputs_embeds,
             use_cache=use_cache)
 
-        hidden_states = transformer_outputs[0]
+        hidden_states = transformer_outputs[0] # bs*seq_len*hidden_states
         rewards = self.v_head(hidden_states).squeeze(-1)
         chosen_mean_scores = []
         rejected_mean_scores = []
