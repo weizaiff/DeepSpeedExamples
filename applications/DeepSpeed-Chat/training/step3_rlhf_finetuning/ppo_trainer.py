@@ -58,7 +58,7 @@ class DeepSpeedPPOTrainer():
             args.end_of_conversation_token)['input_ids'][-1]
 
         # Those value can be changed
-        self.kl_ctl = 0.02
+        self.kl_ctl = 0.1 #0.02--->0.1
         self.clip_reward_value = 5
         self.cliprange = 0.2
         self.cliprange_value = 0.2
